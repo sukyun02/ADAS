@@ -5,7 +5,7 @@
  * 
  * @authors     Jaehwan Lee (idljh5529@gmail.com)          
  *
- * @date        2025-08-12 Released by AI Lab, Hansung University
+ * @date        2025-08-12 Released by AI Lab, Hanyang University
  * 
 """
 
