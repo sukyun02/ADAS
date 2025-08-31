@@ -180,7 +180,7 @@ class MotionSensorProcessor:
         # 초기값은 raw data와 똑같은 값을 반환
         filtered_data = np.zeros_like(data)
         for i in range(len(data)):
-            filtered_data[i] = 0 # TODO: 이전까지의 값들을 평균으로 계산하여 반환
+            filtered_data[i] = 0 # TODO: 이전까지의 값들을 평균으로 계산하여 반환 - np.mean() 사용 가능
 
         return filtered_data
     

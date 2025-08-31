@@ -65,7 +65,7 @@ class LongitudinalDynamics:
         sgn = 1.0 if velocity >= 0 else -1.0
         
         # 구름저항
-        F_roll = xxxxxx # TODO: 구름저항 계산식 작성
+        F_roll = self.k_R * self.m * self.g * np.cos(self.slope) * sgn # TODO: 구름저항 계산식 작성
         
         # 공기저항
         F_aero = xxxxxx # TODO: 공기저항 계산식 작성
@@ -87,14 +87,11 @@ class LongitudinalDynamics:
         T_m = xxxxxx # TODO: np.clip 사용하여 모터 토크 제한
         T_b = xxxxxx # TODO: np.clip 사용하여 브레이크 토크 제한
         
-        # 로드 토크 (모터축 환산)
-        T_load = xxxxxx # TODO: 로드 토크 계산식 작성
-        
         # 모터 각가속도
-        omega_dot = xxxxxx # TODO: 모터 각가속도 계산식 작성
+        omega_dot = (xxxxxx - self.gear_ratio * T_b) / xxxxxx # TODO: 모터 각가속도 계산식 작성
         
         # 종가속도
-        acceleration = xxxxxx # TODO: 종가속도 계산식 작성
+        acceleration = xxxxxx * (xxxxxx * self.gear_ratio) # TODO: 종가속도 계산식 작성
         
         return acceleration, omega_dot, F_roll, F_aero, F_grav
     
@@ -144,11 +141,11 @@ class LateralDynamics:
             beta_new = 0.0
             yaw_rate = 0.0
         else:
-            beta_new = xxxxxx # TODO: 슬립각 계산식 작성
+            beta_new = xxxxxx # TODO: 슬립각 계산식 작성 - delta_r은 0으로 가정
             beta_new = xxxxxx # TODO: np.clip 사용하여 슬립각 제한
             
             # 요 각속도 계산
-            yaw_rate = xxxxxx # TODO: 요 각속도 계산식 작성
+            yaw_rate = xxxxxx # TODO: 요 각속도 계산식 작성 - delta_r은 0으로 가정
             yaw_rate = xxxxxx # TODO: np.clip 사용하여 요 각속도 제한
         
         # 상태 미분값
@@ -174,8 +171,8 @@ class LateralDynamics:
         alpha_r = xxxxxx # TODO: np.clip 사용하여 후륜 슬립각 제한 with max_alpha
         
         # 측력 계산
-        Fyf = xxxxxx # TODO: 전륜 측력 계산식 작성
-        Fyr = xxxxxx # TODO: 후륜 측력 계산식 작성
+        Fyf = xxxxxx # TODO: 전륜 측력 계산식 작성 - (self.Cf == 2*c_af)
+        Fyr = xxxxxx # TODO: 후륜 측력 계산식 작성 - (self.Cr == 2*c_ar)
         
         # 상태 미분값 계산
         beta_dot = xxxxxx # TODO: 슬립각 미분값 계산식 작성

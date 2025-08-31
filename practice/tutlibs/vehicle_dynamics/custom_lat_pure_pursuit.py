@@ -44,8 +44,8 @@ class PurePursuitController:
         dy = path_y - vehicle_y
         
         # 차량 좌표계에서의 경로점 위치
-        x_local = xxxxxx # TODO: 차량 좌표계에서의 경로점 위치 계산식 작성
-        y_local = xxxxxx # TODO: 차량 좌표계에서의 경로점 위치 계산식 작성
+        x_local = cos_yaw * dx + sin_yaw * dy # TODO: 차량 좌표계에서의 경로점 위치 계산식 작성
+        y_local = -sin_yaw * dx + cos_yaw * dy # TODO: 차량 좌표계에서의 경로점 위치 계산식 작성
         
         # 거리 계산
         distances = xxxxxx # TODO: 거리 계산식 작성
@@ -62,7 +62,7 @@ class PurePursuitController:
             best_idx = forward_indices[np.argmin(distance_diff)]
         else:
             # 전방 점이 없으면 가장 가까운 점 선택
-            best_idx = xxxxxx # TODO: 가장 가까운 점 찾기
+            best_idx = xxxxxx # TODO: 가장 가까운 점 찾기 - np.argmin 사용
         
         return path_x[best_idx], path_y[best_idx], best_idx
     
@@ -86,13 +86,13 @@ class PurePursuitController:
         dy = target_y - vehicle_y
         
         # 차량 좌표계로 변환
-        x_local = xxxxxx # TODO: 차량 좌표계에서의 타겟 위치 계산식 작성
-        y_local = xxxxxx # TODO: 차량 좌표계에서의 타겟 위치 계산식 작성
+        x_local = cos_yaw * dx + sin_yaw * dy # TODO: 차량 좌표계에서의 타겟 위치 계산식 작성
+        y_local = -sin_yaw * dx + cos_yaw * dy # TODO: 차량 좌표계에서의 타겟 위치 계산식 작성
         
         # Pure Pursuit 조향각 계산
         # δ = arctan(2 * L * y_local / lookahead_distance^2)
         lookahead_distance_actual = xxxxxx # TODO: 룩어헤드 거리 계산식 작성
-        lookahead_distance_actual = xxxxxx # TODO: 분모 보호
+        lookahead_distance_actual = max(lookahead_distance_actual, 0.1) # TODO: 분모 보호
         
         steering_angle = xxxxxx # TODO: 조향각 계산식 작성
         

@@ -113,9 +113,9 @@ class AdaptiveSpeedController:
             return 0.0
         
         # 3점을 이용한 곡률 계산
-        idx1 = xxxxxx # TODO: 첫 번째 점 인덱스
+        idx1 = max(0, current_idx - 1)
         idx2 = current_idx
-        idx3 = xxxxxx # TODO: 현재 점 + lookahead 번째 점 인덱스
+        idx3 = min(len(path_x) - 1, current_idx + lookahead)
         
         x1, y1 = xxxxxx # TODO: 첫 번째 점 좌표
         x2, y2 = xxxxxx # TODO: 두 번째 점 좌표
@@ -130,7 +130,7 @@ class AdaptiveSpeedController:
         b = xxxxxx # TODO: 곡률 계산식 작성
         c = xxxxxx # TODO: 곡률 계산식 작성
         
-        if xxxxxx < 1e-6:
+        if a * b * c < 1e-6:
             return 0.0
         
         curvature = xxxxxx # TODO: 곡률 계산식 작성
@@ -142,7 +142,7 @@ class AdaptiveSpeedController:
         curvature = self.calculate_curvature(path_x, path_y, current_idx) # TODO: 곡률 계산식 작성
         
         # 곡률이 클수록 속도 감소
-        speed_reduction = xxxxxx # TODO: 곡률 기반 속도 감소 인수 계산식 작성 (self.curvature_factor 사용)
+        speed_reduction = self.curvature_factor * curvature # TODO: 곡률 기반 속도 감소 인수 계산식 작성 (self.curvature_factor 사용)
         target_speed = xxxxxx # TODO: 목표 속도 계산식 작성
         
         # 속도 제한

@@ -77,7 +77,7 @@ class GNSSProcessor:
                 return None
                 
             # 위도 변환
-            lat_str = xxxxxx # TODO: 위도 문자열 추출
+            lat_str = xxxxxx # TODO: 위도 문자열 추출 - parts 사용
             lat_hemisphere = xxxxxx # TODO: 위도 방향 추출
             if lat_str and lat_hemisphere:
                 lat_deg = int(lat_str[:2])
@@ -122,8 +122,8 @@ class GNSSProcessor:
                 return None
                 
             # 위도 변환
-            lat_str = xxxxxx # TODO: 위도 문자열 추출
-            lat_hemisphere = xxxxxx # TODO: 위도 방향 추출
+            lat_str = parts[3] # 위도 문자열 추출
+            lat_hemisphere = parts[4] # 위도 방향 추출
             if lat_str and lat_hemisphere:
                 lat_deg = int(lat_str[:2])
                 lat_min = float(lat_str[2:])
@@ -150,9 +150,9 @@ class GNSSProcessor:
                 'status': xxxxxx, # TODO: 상태 추출
                 'latitude': latitude,
                 'longitude': longitude,
-                'speed_knots': float(xxxxxx) if xxxxxx else 0.0, # TODO: 속도 추출
-                'course': float(xxxxxx) if xxxxxx else 0.0, # TODO: 방향 추출 (Track true)
-                'date': xxxxxx # TODO: 날짜 추출
+                'speed_knots': float(parts[7]) if parts[7] else 0.0, # 속도 추출
+                'course': float(parts[8]) if parts[8] else 0.0, # 방향 추출 (Track true)
+                'date': parts[9] # 날짜 추출
             }
         except (ValueError, IndexError):
             return None
@@ -357,10 +357,10 @@ class GNSSProcessor:
         a = self.WGS84_A
         b = self.WGS84_B
         
-        num = xxxxxx # TODO: 자오선 곡률반지름 계산식 완성
-        den = xxxxxx # TODO: 자오선 곡률반지름 계산식 완성
+        num = (a * b) ** 2 # 자오선 곡률반지름 계산식
+        den = ((a * np.cos(lat)) ** 2 + (b * np.sin(lat)) ** 2) ** (3/2) # 자오선 곡률반지름 계산식
         
-        return xxxxxx # TODO: 자오선 곡률반지름 계산식 완성
+        return num / den # 자오선 곡률반지름 계산식 완성
     
     def normal_radius(self, ref_latitude_deg: float) -> float:
         """수직 곡률반지름을 계산합니다."""
@@ -369,7 +369,7 @@ class GNSSProcessor:
         a = self.WGS84_A
         b = self.WGS84_B
         
-        return xxxxxx # TODO: 수직 곡률반지름 계산식 완성
+        return a * a / np.sqrt((a * np.cos(lat)) ** 2 + (b * np.sin(lat)) ** 2) # 수직 곡률반지름 계산식 완성
     
     def wgs84_to_enu(self, llh: np.ndarray, ref_llh: np.ndarray) -> np.ndarray:
         """
@@ -394,8 +394,8 @@ class GNSSProcessor:
             delta_lat_deg = xxxxxx # TODO: 위도 차이 계산
             delta_lon_deg = xxxxxx # TODO: 경도 차이 계산
             
-            enu[idx, 0] = xxxxxx # TODO: East 추출
-            enu[idx, 1] = xxxxxx # TODO: North 추출
+            enu[idx, 0] = np.deg2rad(delta_lon_deg) * (normal_r + ref_height) * np.cos(ref_lat) # East 추출
+            enu[idx, 1] = np.deg2rad(delta_lat_deg) * (meridional_r + ref_height)  # North 추출
             enu[idx, 2] = xxxxxx # TODO: Up 추출
             
         return enu
@@ -420,8 +420,8 @@ class GNSSProcessor:
         normal_r = self.normal_radius(xxxxxx) # TODO: normal_radius 함수 완성
         
         for idx in range(enu.shape[0]):
-            delta_lat_deg = xxxxxx # TODO: 위도 차이 계산
-            delta_lon_deg = xxxxxx # TODO: 경도 차이 계산
+            delta_lat_deg = np.rad2deg(enu[idx, 1] / (meridional_r + ref_height)) # 위도 차이 계산
+            delta_lon_deg = np.rad2deg(enu[idx, 0] / ((normal_r + ref_height) * np.cos(ref_lat))) # 경도 차이 계산
             
             llh[idx, 0] = xxxxxx # TODO: Latitude 추출
             llh[idx, 1] = xxxxxx # TODO: Longitude 추출
@@ -565,13 +565,13 @@ class GNSSProcessor:
         
         # 시작점과 끝점 마커
         folium.Marker(
-            location=[xxxxxx, xxxxxx], # TODO: 시작점 좌표 대입
+            location=[xxxxxx, xxxxxx], # TODO: 시작점 좌표 대입 - latitudes[xxxxxx], longitudes[xxxxxx]
             popup="Start Point",
             icon=folium.Icon(color='green', icon='play')
         ).add_to(m)
         
         folium.Marker(
-            location=[xxxxxx, xxxxxx], # TODO: 끝점 좌표 대입
+            location=[xxxxxx, xxxxxx], # TODO: 끝점 좌표 대입 - latitudes[xxxxxx], longitudes[xxxxxx]
             popup="End Point",
             icon=folium.Icon(color='red', icon='stop')
         ).add_to(m)
@@ -586,7 +586,7 @@ class GNSSProcessor:
                         location=[xxxxxx, xxxxxx], # TODO: 헤딩 화살표 좌표 대입
                         number_of_sides=3,
                         radius=5,
-                        rotation=xxxxxx, # TODO: 헤딩 값 대입
+                        rotation=xxxxxx, # TODO: 헤딩 값 대입 - headings[xxxxxx]
                         color='black',
                         fill_color='black',
                         fillOpacity=0.7,
