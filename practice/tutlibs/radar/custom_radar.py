@@ -511,14 +511,14 @@ class StatisticalOutlierRemoval:
                 print(f"  Processed {i}/{len(points)} points ({i/len(points)*100:.1f}%)")
             
             # Step 2a: Find k+1 nearest neighbors (including the point itself)
-            [_, neighbor_indices, squared_distances] = self.kdtree_root_.search_knn_vector_3d(xxxxxx, xxxxxx) # TODO: k-NN 검색 함수의 인자를 채워주세요.
+            [_, neighbor_indices, squared_distances] = self.kdtree_root_.search_knn_vector_3d(query_point, self.nb_neighbors + 1) # TODO: k-NN 검색 함수의 인자를 채워주세요.
             total_searches += 1
             
             # Step 2b: Remove the first neighbor (the point itself with distance 0)
             # The first neighbor should be the point itself with very small distance (due to floating point precision)
             if len(neighbor_indices) > 1:
                 # Skip the first neighbor (self) and take the next k neighbors
-                actual_neighbor_distances = xxxxxx # TODO: squared_distances에서 자신과의 거리를 제외해주세요.
+                actual_neighbor_distances = squared_distances[1:] # TODO: squared_distances에서 자신과의 거리를 제외해주세요.
                 
                 # Convert squared distances to actual distances
                 neighbor_distances = np.sqrt(actual_neighbor_distances)
@@ -556,8 +556,8 @@ class StatisticalOutlierRemoval:
         global_mean = np.mean(mean_distances)
         global_std = np.std(mean_distances)
         
-        threshold_lower = xxxxxx # TODO: self.std_ratio를 사용하여 하한 임계값 계산
-        threshold_upper = xxxxxx # TODO: self.std_ratio를 사용하여 상한 임계값 계산
+        threshold_lower = 0.0 # TODO: self.std_ratio를 사용하여 하한 임계값 계산
+        threshold_upper = global_mean + self.std_ratio * global_std # TODO: self.std_ratio를 사용하여 상한 임계값 계산
         
         return global_mean, global_std, threshold_lower, threshold_upper
     
@@ -611,7 +611,7 @@ class StatisticalOutlierRemoval:
         
         # Step 4: Filter points
         inlier_mask = ~outlier_mask
-        filtered_points = xxxxxx # TODO: inlier_mask를 사용하여 필터링된 포인트를 선택
+        filtered_points = points[inlier_mask] # TODO: inlier_mask를 사용하여 필터링된 포인트를 선택
         
         num_outliers = np.sum(outlier_mask)
         num_inliers = len(filtered_points)
@@ -1193,7 +1193,7 @@ def custom_dbscan_clustering(pcd: o3d.geometry.PointCloud,
     kdtree = o3d.geometry.KDTreeFlann(pcd)
     
     # 라벨 초기화 (-1: 미분류, 0~: 클러스터 ID)
-    labels = xxxxxx # TODO: np.full을 사용하여 -1로 초기화된 라벨 배열 생성
+    labels = np.full(n_points, -1, dtype=int) # TODO: np.full을 사용하여 -1로 초기화된 라벨 배열 생성
     cluster_id = 0
     
     for point_idx in range(n_points):
@@ -1202,33 +1202,33 @@ def custom_dbscan_clustering(pcd: o3d.geometry.PointCloud,
             continue
         
         # 이웃 포인트들 찾기
-        [num_neighbors, neighbors, distances] = xxxxxx # TODO: kdtree의 search_radius_vector_3d 함수 및 현재 포인트 위치와 epsilon을 사용하여 이웃 포인트 찾기
+        [num_neighbors, neighbors, distances] = kdtree.search_radius_vector_3d(points[point_idx], epsilon) # TODO: kdtree의 search_radius_vector_3d 함수 및 현재 포인트 위치와 epsilon을 사용하여 이웃 포인트 찾기
         
         # 코어 포인트가 아닌 경우 (이웃이 min_points보다 적음)
-        if xxxxxx < min_points: # TODO: 이웃 개수가 min_points보다 적은지 확인
+        if len(neighbors) < min_points: # TODO: 이웃 개수가 min_points보다 적은지 확인
             # 노이즈로 분류 (라벨 -1 유지)
             continue
         
         # 새로운 클러스터 시작
-        labels[point_idx] = xxxxxx # TODO: 현재 클러스터 ID로 라벨 업데이트
+        labels[point_idx] = cluster_id # TODO: 현재 클러스터 ID로 라벨 업데이트
         
         # 이웃들을 클러스터에 추가 (너비 우선 탐색)
         seed_set = list(neighbors)
         i = 0
         while i < len(seed_set):
-            current_point = xxxxxx # TODO: 현재 처리 중인 포인트
+            current_point = seed_set[i] # TODO: 현재 처리 중인 포인트
             
             # 노이즈였던 포인트를 클러스터에 추가
             if labels[current_point] == -1:
-                labels[current_point] = xxxxxx # TODO: 현재 클러스터 ID로 라벨 업데이트
+                labels[current_point] = cluster_id # TODO: 현재 클러스터 ID로 라벨 업데이트
                 
                 # 현재 포인트도 코어 포인트인지 확인
-                [num_neighbors, current_neighbors, distances] = xxxxxx # TODO: kdtree의 search_radius_vector_3d 함수 및 현재 포인트 위치와 epsilon을 사용하여 이웃 포인트 찾기
-                if xxxxxx >= min_points: # TODO: 이웃 개수가 min_points 이상인지 확인
+                [num_neighbors, current_neighbors, distances] = kdtree.search_radius_vector_3d(points[current_point], epsilon) # TODO: kdtree의 search_radius_vector_3d 함수 및 현재 포인트 위치와 epsilon을 사용하여 이웃 포인트 찾기
+                if len(current_neighbors) >= min_points: # TODO: 이웃 개수가 min_points 이상인지 확인
                     # 새로운 이웃들을 seed_set에 추가
                     for neighbor in current_neighbors:
                         if neighbor not in seed_set:
-                            seed_set.append(xxxxxx) # TODO: seed_set에 새로운 이웃 추가
+                            seed_set.append(neighbor) # TODO: seed_set에 새로운 이웃 추가
             
             i += 1
         

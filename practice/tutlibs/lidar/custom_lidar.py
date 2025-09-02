@@ -36,14 +36,14 @@ def custom_extract_roi(pcd: o3d.geometry.PointCloud,
     points = np.array(pcd.points)
     
     # ROI 영역 내의 포인트들만 필터링
-    x_mask = (points[:, 0] >= xxxxxx) & (points[:, 0] <= xxxxxx)  # X축 조건 - TODO: x_range 값을 사용하여 필터링
-    y_mask = (points[:, 1] >= xxxxxx) & (points[:, 1] <= xxxxxx)  # Y축 조건 - TODO: y_range 값을 사용하여 필터링
-    z_mask = (points[:, 2] >= xxxxxx) & (points[:, 2] <= xxxxxx)  # Z축 조건 - TODO: z_range 값을 사용하여 필터링
+    x_mask = (points[:, 0] >= x_range[0]) & (points[:, 0] <= x_range[1])  # X축 조건 - TODO: x_range 값을 사용하여 필터링
+    y_mask = (points[:, 1] >= y_range[0]) & (points[:, 1] <= y_range[1])  # Y축 조건 - TODO: y_range 값을 사용하여 필터링
+    z_mask = (points[:, 2] >= z_range[0]) & (points[:, 2] <= z_range[1])  # Z축 조건 - TODO: z_range 값을 사용하여 필터링
     
     # 모든 조건을 만족하는 포인트들의 인덱스
-    roi_mask = xxxxxx # TODO: 각 mask 영역을 AND 연산하여 roi_mask 생성
-    roi_points = points[xxxxxx] # TODO: ROI 영역 내의 포인트들 추출
-    roi_outliers = points[xxxxxx] # TODO: ROI 영역 외의 포인트들 추출
+    roi_mask = x_mask & y_mask & z_mask # TODO: 각 mask 영역을 AND 연산하여 roi_mask 생성
+    roi_points = points[roi_mask] # TODO: ROI 영역 내의 포인트들 추출
+    roi_outliers = points[~roi_mask] # TODO: ROI 영역 외의 포인트들 추출
     
     # 새로운 포인트 클라우드 생성
     roi_pcd = o3d.geometry.PointCloud()
@@ -88,14 +88,14 @@ def custom_brute_force_search(pcd: o3d.geometry.PointCloud, query: np.ndarray, k
     query = np.array(query)
     
     # TODO: 모든 포인트와의 거리 계산
-    distances = xxxxxx
+    distances = np.linalg.norm(points - query, axis=1)  # TODO: 각 포인트와 쿼리 포인트 사이의 거리 계산
     
     # TODO: 거리에 따라 정렬
-    sorted_indices = xxxxxx
+    sorted_indices = np.argsort(distances)  # TODO: distances 배열을 오름차순으로 정렬한 인덱스 배열 생성
     
     # TODO: 가장 가까운 k개의 포인트 선택
-    k_indices = xxxxxx
-    k_distances = xxxxxx
+    k_indices = sorted_indices[:k]  # TODO: 정렬된 인덱스 배열에서 처음 k개 선택
+    k_distances = distances[k_indices]  # TODO: 선택된 인덱스에 해당하는 거리 값들 선택
     
     return k_indices, k_distances
 
@@ -139,8 +139,8 @@ def custom_least_squares_line_fitting(pcd: o3d.geometry.PointCloud) -> np.ndarra
     b = y # TODO: b 벡터 완성
 
     # 정규 방정식: H^T * H * params = H^T * b
-    HtH = xxxxxx          # (2,2) - TODO: H^T H 행렬 완성
-    Ht_b = xxxxxx         # (2,)  - TODO: H^T b 벡터 완성
+    HtH = H.T @ H          # (2,2) - TODO: H^T H 행렬 완성
+    Ht_b = H.T @ b      # (2,)  - TODO: H^T b 벡터 완성
 
     # 직접 역행렬을 써서 해 구하기: x_hat = (H^T H)^{-1} H^T b
     try:
@@ -148,7 +148,7 @@ def custom_least_squares_line_fitting(pcd: o3d.geometry.PointCloud) -> np.ndarra
     except np.linalg.LinAlgError:
         # 특이행렬일 때는 의사역행렬 사용
         inv_HtH = np.linalg.pinv(HtH)
-    line_params = xxxxxx  # (2,) - TODO: inv_HtH와 Ht_b를 사용하여 line_params 완성
+    line_params = Ht_b @ inv_HtH # (2,) - TODO: inv_HtH와 Ht_b를 사용하여 line_params 완성
 
     return line_params
 
@@ -177,8 +177,8 @@ def custom_least_squares_sphere_fitting(pcd: o3d.geometry.PointCloud) -> Tuple[n
     b = x ** 2 + y ** 2 + z ** 2 # TODO: b 벡터 완성
     
     # 정규 방정식: H^T * H * params = H^T * b
-    HtH = xxxxxx          # (4,4) - TODO: H^T H 행렬 완성
-    Ht_b = xxxxxx         # (4,)  - TODO: H^T b 벡터 완성
+    HtH = H.T @ H          # (4,4) - TODO: H^T H 행렬 완성
+    Ht_b = H.T @ b         # (4,)  - TODO: H^T b 벡터 완성
     
     # 직접 역행렬을 써서 해 구하기: x_hat = (H^T H)^{-1} H^T b
     try:
@@ -186,11 +186,11 @@ def custom_least_squares_sphere_fitting(pcd: o3d.geometry.PointCloud) -> Tuple[n
     except np.linalg.LinAlgError:
         # 특이행렬일 때는 의사역행렬 사용
         inv_HtH = np.linalg.pinv(HtH)
-    params = xxxxxx  # (4,) - TODO: inv_HtH와 Ht_b를 사용하여 line_params 완성
+    params = inv_HtH @ Ht_b  # (4,) - TODO: inv_HtH와 Ht_b를 사용하여 line_params 완성
     
     # 파라미터 추출
-    cx, cy, cz = xxxxxx, xxxxxx, xxxxxx # TODO: params에서 cx, cy, cz 추출
-    d = xxxxxx # TODO: params에서 d 추출
+    cx, cy, cz = params[0]/2, params[1]/2, params[2]/2 # TODO: params에서 cx, cy, cz 추출
+    d = params[3] # TODO: params에서 d 추출
     
     # 반지름 계산: r² = cx² + cy² + cz² + d
     radius_squared = cx**2 + cy**2 + cz**2 + d  # TODO: cx, cy, cz, d를 사용하여 radius_squared 계산
@@ -303,8 +303,8 @@ def custom_ransac_sample_points(pcd: o3d.geometry.PointCloud, n_samples: int) ->
     n_points = len(points)
     
     # 중복 없이 랜덤 인덱스 선택
-    sampled_indices = xxxxxx # TODO: np.random.choice를 사용하여 중복 없이(replace=False) 랜덤 인덱스 선택
-    sampled_points = points[xxxxxx] # TODO: sampled_indices를 사용하여 샘플링된 포인트들 선택
+    sampled_indices = np.random.choice(n_points, n_samples) # TODO: np.random.choice를 사용하여 중복 없이(replace=False) 랜덤 인덱스 선택
+    sampled_points = points[sampled_indices] # TODO: sampled_indices를 사용하여 샘플링된 포인트들 선택
     
     return sampled_points, sampled_indices
 
@@ -332,15 +332,15 @@ def custom_fit_line_from_samples(sampled_points: np.ndarray) -> np.ndarray:
     b = y # TODO: b 벡터 완성
 
     # 정규 방정식: H^T * H * params = H^T * b
-    HtH = xxxxxx          # (2,2) - TODO: H^T H 행렬 완성
-    Ht_b = xxxxxx         # (2,)  - TODO: H^T b 벡터 완성
+    HtH = H.T @ H          # (2,2) - TODO: H^T H 행렬 완성
+    Ht_b = H.T @ b         # (2,)  - TODO: H^T b 벡터 완성
     
     # 직접 역행렬을 써서 해 구하기: x_hat = (H^T H)^{-1} H^T b
     try:
         inv_HtH = np.linalg.inv(HtH)
     except np.linalg.LinAlgError:
         inv_HtH = np.linalg.pinv(HtH)
-    line_params = xxxxxx # (2,) - TODO: inv_HtH와 Ht_b를 사용하여 line_params 완성
+    line_params = inv_HtH @ Ht_b # (2,) - TODO: inv_HtH와 Ht_b를 사용하여 line_params 완성
     
     return line_params
 
@@ -367,8 +367,8 @@ def custom_fit_sphere_from_samples(sampled_points: np.ndarray) -> Tuple[np.ndarr
     b = x ** 2 + y ** 2 + z ** 2 # TODO: b 벡터 완성
     
     # 정규 방정식: H^T * H * params = H^T * b
-    HtH = xxxxxx          # (4,4) - TODO: H^T H 행렬 완성
-    Ht_b = xxxxxx         # (4,)  - TODO: H^T b 벡터 완성
+    HtH = H.T @ H          # (4,4) - TODO: H^T H 행렬 완성
+    Ht_b = H.T @ b         # (4,)  - TODO: H^T b 벡터 완성
     
     # 직접 역행렬을 써서 해 구하기: x_hat = (H^T H)^{-1} H^T b
     try:
@@ -376,11 +376,11 @@ def custom_fit_sphere_from_samples(sampled_points: np.ndarray) -> Tuple[np.ndarr
     except np.linalg.LinAlgError:
         # 특이행렬일 때는 의사역행렬 사용
         inv_HtH = np.linalg.pinv(HtH)
-    params = xxxxxx  # (4,) - TODO: inv_HtH와 Ht_b를 사용하여 line_params 완성
+    params = inv_HtH @ Ht_b  # (4,) - TODO: inv_HtH와 Ht_b를 사용하여 line_params 완성
     
     # 파라미터 추출
-    cx, cy, cz = xxxxxx, xxxxxx, xxxxxx # TODO: params에서 cx, cy, cz 추출
-    d = xxxxxx # TODO: params에서 d 추출
+    cx, cy, cz = params[0]/2, params[1]/2, params[2]/2 # TODO: params에서 cx, cy, cz 추출
+    d = params[3] # TODO: params에서 d 추출
     
     # 반지름 계산: r² = cx² + cy² + cz² + d
     radius_squared = cx**2 + cy**2 + cz**2 + d  # TODO: cx, cy, cz, d를 사용하여 radius_squared 계산
@@ -407,8 +407,8 @@ def custom_compute_line_distances(pcd: o3d.geometry.PointCloud, line_params: np.
     a, b = line_params
     
     # 점-직선 거리 공식 (직선: ax - y + b = 0)
-    numerator = xxxxxx   # TODO: |ax - y + b| 계산
-    denominator = xxxxxx # TODO: √(a² + 1) 계산
+    numerator = abs(a*x - y + b)   # TODO: |ax - y + b| 계산
+    denominator = np.sqrt(pow(a, 2) + 1) # TODO: √(a² + 1) 계산
     
     distances = numerator / denominator
     
@@ -431,7 +431,7 @@ def custom_compute_sphere_distances(pcd: o3d.geometry.PointCloud, center: np.nda
     cx, cy, cz = center
     
     # 각 포인트와 중심점 사이의 거리
-    distances_to_center = xxxxxx  # TODO: np.linalg.norm 혹은 np.sqrt을 사용하여 각 포인트와 중심점 사이의 거리 계산
+    distances_to_center = np.sqrt((points[:, 0] - cx)**2 + (points[:, 1] - cy)**2 + (points[:, 2] - cz)**2)  # TODO: np.linalg.norm 혹은 np.sqrt을 사용하여 각 포인트와 중심점 사이의 거리 계산
     
     # 구 표면까지의 거리
     distances = np.abs(distances_to_center - radius)

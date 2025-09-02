@@ -77,8 +77,8 @@ class GNSSProcessor:
                 return None
                 
             # 위도 변환
-            lat_str = xxxxxx # TODO: 위도 문자열 추출 - parts 사용
-            lat_hemisphere = xxxxxx # TODO: 위도 방향 추출
+            lat_str = parts[2] # TODO: 위도 문자열 추출 - parts 사용
+            lat_hemisphere = parts[3] # TODO: 위도 방향 추출
             if lat_str and lat_hemisphere:
                 lat_deg = int(lat_str[:2])
                 lat_min = float(lat_str[2:])
@@ -89,8 +89,8 @@ class GNSSProcessor:
                 latitude = None
                 
             # 경도 변환
-            lon_str = xxxxxx # TODO: 경도 문자열 추출
-            lon_hemisphere = xxxxxx # TODO: 경도 방향 추출
+            lon_str = parts[4] # TODO: 경도 문자열 추출
+            lon_hemisphere = parts[5] # TODO: 경도 방향 추출
             if lon_str and lon_hemisphere:
                 lon_deg = int(lon_str[:3])
                 lon_min = float(lon_str[3:])
@@ -101,15 +101,15 @@ class GNSSProcessor:
                 longitude = None
                 
             return {
-                'time': xxxxxx, # TODO: UTC 시간 추출
+                'time': parts[1], # TODO: UTC 시간 추출
                 'latitude': latitude,
                 'longitude': longitude,
-                'fix_quality': int(xxxxxx) if xxxxxx else 0, # TODO: FIX 품질 추출
-                'num_satellites': int(xxxxxx) if xxxxxx else 0, # TODO: 위성 수 추출
-                'hdop': float(xxxxxx) if xxxxxx else 0.0, # TODO: HDOP 추출
-                'altitude': float(xxxxxx) if xxxxxx else 0.0, # TODO: 고도 추출
-                'altitude_unit': xxxxxx, # TODO: 고도 단위 추출
-                'geoid_height': float(xxxxxx) if xxxxxx else 0.0 # TODO: 지구 고도 추출 (undulation)
+                'fix_quality': int(parts[6]) if parts[6] else 0, # TODO: FIX 품질 추출
+                'num_satellites': int(parts[7]) if parts[7] else 0, # TODO: 위성 수 추출
+                'hdop': float(parts[8]) if parts[8] else 0.0, # TODO: HDOP 추출
+                'altitude': float(parts[9]) if parts[9] else 0.0, # TODO: 고도 추출
+                'altitude_unit': parts[10], # TODO: 고도 단위 추출
+                'geoid_height': float(parts[11]) if parts[11] else 0.0 # TODO: 지구 고도 추출 (undulation)
             }
         except (ValueError, IndexError):
             return None
@@ -134,8 +134,8 @@ class GNSSProcessor:
                 latitude = None
                 
             # 경도 변환
-            lon_str = xxxxxx # TODO: 경도 문자열 추출
-            lon_hemisphere = xxxxxx # TODO: 경도 방향 추출
+            lon_str = parts[5] # TODO: 경도 문자열 추출
+            lon_hemisphere = parts[6] # TODO: 경도 방향 추출
             if lon_str and lon_hemisphere:
                 lon_deg = int(lon_str[:3])
                 lon_min = float(lon_str[3:])
@@ -146,8 +146,8 @@ class GNSSProcessor:
                 longitude = None
                 
             return {
-                'time': xxxxxx, # TODO: UTC 시간 추출
-                'status': xxxxxx, # TODO: 상태 추출
+                'time': parts[1], # TODO: UTC 시간 추출
+                'status': parts[2], # TODO: 상태 추출
                 'latitude': latitude,
                 'longitude': longitude,
                 'speed_knots': float(parts[7]) if parts[7] else 0.0, # 속도 추출
@@ -387,16 +387,16 @@ class GNSSProcessor:
         ref_height = ref_llh[2]
         ref_lat = np.deg2rad(ref_llh[0])
         
-        meridional_r = self.meridional_radius(xxxxxx) # TODO: meridional_radius 함수 완성
-        normal_r = self.normal_radius(xxxxxx) # TODO: normal_radius 함수 완성
+        meridional_r = self.meridional_radius(ref_llh[0]) # TODO: meridional_radius 함수 완성
+        normal_r = self.normal_radius(ref_llh[0]) # TODO: normal_radius 함수 완성
         
         for idx in range(llh.shape[0]):
-            delta_lat_deg = xxxxxx # TODO: 위도 차이 계산
-            delta_lon_deg = xxxxxx # TODO: 경도 차이 계산
+            delta_lat_deg = llh[idx, 0] - ref_llh[0] # TODO: 위도 차이 계산
+            delta_lon_deg = llh[idx, 1] - ref_llh[1] # TODO: 경도 차이 계산
             
             enu[idx, 0] = np.deg2rad(delta_lon_deg) * (normal_r + ref_height) * np.cos(ref_lat) # East 추출
             enu[idx, 1] = np.deg2rad(delta_lat_deg) * (meridional_r + ref_height)  # North 추출
-            enu[idx, 2] = xxxxxx # TODO: Up 추출
+            enu[idx, 2] = llh[idx, 2] - ref_llh[2] # TODO: Up 추출
             
         return enu
     
@@ -416,16 +416,16 @@ class GNSSProcessor:
         ref_height = ref_llh[2]
         ref_lat = np.deg2rad(ref_llh[0])
         
-        meridional_r = self.meridional_radius(xxxxxx) # TODO: meridional_radius 함수 완성
-        normal_r = self.normal_radius(xxxxxx) # TODO: normal_radius 함수 완성
+        meridional_r = self.meridional_radius(ref_llh[0]) # TODO: meridional_radius 함수 완성
+        normal_r = self.normal_radius(ref_llh[0]) # TODO: normal_radius 함수 완성
         
         for idx in range(enu.shape[0]):
             delta_lat_deg = np.rad2deg(enu[idx, 1] / (meridional_r + ref_height)) # 위도 차이 계산
             delta_lon_deg = np.rad2deg(enu[idx, 0] / ((normal_r + ref_height) * np.cos(ref_lat))) # 경도 차이 계산
             
-            llh[idx, 0] = xxxxxx # TODO: Latitude 추출
-            llh[idx, 1] = xxxxxx # TODO: Longitude 추출
-            llh[idx, 2] = xxxxxx # TODO: Height 추출
+            llh[idx, 0] = ref_llh[0] + delta_lat_deg # TODO: Latitude 추출
+            llh[idx, 1] = ref_llh[1] + delta_lon_deg # TODO: Longitude 추출
+            llh[idx, 2] = ref_llh[2] + enu[idx, 2] # TODO: Height 추출
             
         return llh
     
@@ -534,7 +534,7 @@ class GNSSProcessor:
         
         # 지도 생성
         m = folium.Map(
-            location=[xxxxxx, xxxxxx], # TODO: 지도 중심점 대입
+            location=[center_lat, center_lon], # TODO: 지도 중심점 대입
             zoom_start=18,
             tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
             attr='Esri WorldImagery'
@@ -565,13 +565,13 @@ class GNSSProcessor:
         
         # 시작점과 끝점 마커
         folium.Marker(
-            location=[xxxxxx, xxxxxx], # TODO: 시작점 좌표 대입 - latitudes[xxxxxx], longitudes[xxxxxx]
+            location=[latitudes[0], longitudes[0]], # TODO: 시작점 좌표 대입 - latitudes[xxxxxx], longitudes[xxxxxx]
             popup="Start Point",
             icon=folium.Icon(color='green', icon='play')
         ).add_to(m)
         
         folium.Marker(
-            location=[xxxxxx, xxxxxx], # TODO: 끝점 좌표 대입 - latitudes[xxxxxx], longitudes[xxxxxx]
+            location=[latitudes[-1], longitudes[-1]], # TODO: 끝점 좌표 대입 - latitudes[xxxxxx], longitudes[xxxxxx]
             popup="End Point",
             icon=folium.Icon(color='red', icon='stop')
         ).add_to(m)
@@ -583,14 +583,14 @@ class GNSSProcessor:
                 if i < len(headings):
                     # 간단한 화살표 마커
                     folium.RegularPolygonMarker(
-                        location=[xxxxxx, xxxxxx], # TODO: 헤딩 화살표 좌표 대입
+                        location=[latitudes[i], longitudes[i]], # TODO: 헤딩 화살표 좌표 대입
                         number_of_sides=3,
                         radius=5,
-                        rotation=xxxxxx, # TODO: 헤딩 값 대입 - headings[xxxxxx]
+                        rotation=headings[i], # TODO: 헤딩 값 대입 - headings[xxxxxx]
                         color='black',
                         fill_color='black',
                         fillOpacity=0.7,
-                        popup=f"Heading: {xxxxxx:.1f}°" # TODO: 헤딩 값 대입
+                        popup=f"Heading: {headings[i]:.1f}°" # TODO: 헤딩 값 대입
                     ).add_to(m)
         
         return m

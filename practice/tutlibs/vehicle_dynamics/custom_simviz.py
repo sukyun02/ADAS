@@ -56,7 +56,9 @@ class LongitudinalDynamics:
         
     def calculate_equivalent_inertia(self):
         """등가 관성 계산"""
-        J_eq = xxxxxx # TODO: 등가 관성 계산식 작성
+        J_eq = (self.I_m + self.I_t +
+                self.I_w * (self.gear_ratio**2) + 
+                self.m * (self.r_eff**2) * (self.gear_ratio**2)) # TODO: 등가 관성 계산식 작성
         return J_eq
     
     def calculate_resistances(self, velocity):
@@ -68,10 +70,10 @@ class LongitudinalDynamics:
         F_roll = self.k_R * self.m * self.g * np.cos(self.slope) * sgn # TODO: 구름저항 계산식 작성
         
         # 공기저항
-        F_aero = xxxxxx # TODO: 공기저항 계산식 작성
+        F_aero = 0.5 * self.rho_air * self.Cd * self.Af * velocity**2 * sgn # TODO: 공기저항 계산식 작성
         
         # 중력저항 (경사)
-        F_grav = xxxxxx # TODO: 중력저항 계산식 작성
+        F_grav = self.m * self.g * np.sin(self.slope) # TODO: 중력저항 계산식 작성
         
         return F_roll, F_aero, F_grav
     
@@ -81,17 +83,17 @@ class LongitudinalDynamics:
         J_eq = self.xxxxxx() # TODO: 등가 관성 계산식 작성
         
         # 저항력들
-        F_roll, F_aero, F_grav = self.xxxxxx(velocity) # TODO: 저항력 계산식 작성
+        F_roll, F_aero, F_grav = self.calculate_resistances(velocity) # TODO: 저항력 계산식 작성
         
         # 토크 제한
-        T_m = xxxxxx # TODO: np.clip 사용하여 모터 토크 제한
-        T_b = xxxxxx # TODO: np.clip 사용하여 브레이크 토크 제한
+        T_m = np.clip(motor_torque, 0.0, self.motor_torque_max) # TODO: np.clip 사용하여 모터 토크 제한
+        T_b = np.clip(brake_torque, 0.0, self.brake_torque_max) # TODO: np.clip 사용하여 브레이크 토크 제한
         
         # 모터 각가속도
-        omega_dot = (xxxxxx - self.gear_ratio * T_b) / xxxxxx # TODO: 모터 각가속도 계산식 작성
+        omega_dot = (T_m - self.gear_ratio * self.r_eff * (F_roll + F_aero + F_grav) - self.gear_ratio * T_b) / J_eq # TODO: 모터 각가속도 계산식 작성
         
         # 종가속도
-        acceleration = xxxxxx * (xxxxxx * self.gear_ratio) # TODO: 종가속도 계산식 작성
+        acceleration = self.r_eff * (omega_dot * self.gear_ratio) # TODO: 종가속도 계산식 작성
         
         return acceleration, omega_dot, F_roll, F_aero, F_grav
     

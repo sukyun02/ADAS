@@ -180,7 +180,7 @@ class MotionSensorProcessor:
         # 초기값은 raw data와 똑같은 값을 반환
         filtered_data = np.zeros_like(data)
         for i in range(len(data)):
-            filtered_data[i] = 0 # TODO: 이전까지의 값들을 평균으로 계산하여 반환 - np.mean() 사용 가능
+            filtered_data[i] = np.mean(data[:i+1]) # TODO: 이전까지의 값들을 평균으로 계산하여 반환 - np.mean() 사용 가능
 
         return filtered_data
     
@@ -202,7 +202,9 @@ class MotionSensorProcessor:
         
         for i in range(len(data)):
             # TODO: window_size 만큼의 데이터를 평균으로 계산하여 반환
-            filtered_data[i] = 0 # TODO
+            start_idx = max(0, i - window_size + 1)
+            end_idx = i+1
+            filtered_data[i] = np.mean(data[start_idx:end_idx]) # TODO
             
         return filtered_data
     
@@ -224,7 +226,7 @@ class MotionSensorProcessor:
         filtered_data[0] = data[0]
         
         for i in range(1, len(data)):
-            filtered_data[i] = 0 # TODO: alpha 값을 고려하여 계산하여 반환
+            filtered_data[i] = alpha*filtered_data[i-1]+(1-alpha)*data[i] # TODO: alpha 값을 고려하여 계산하여 반환
             
         return filtered_data
     
@@ -304,16 +306,16 @@ class MotionSensorProcessor:
                 continue
             
             # 펄스 상승 엣지 감지 (0 -> 1)
-            if xxxxxx == 0 and xxxxxx > 0: # TODO: 펄스 상승 엣지 감지 조건 완성
+            if prev_pulse == 0 and pulses[idx] > 0: # TODO: 펄스 상승 엣지 감지 조건 완성
                 tmp_pulse_count += 1
             
             delta_time = time[idx] - prev_time
             
             # 지정된 시간 간격이 지나면 속도 계산
-            if delta_time >= xxxxxx: # TODO: 카운팅 시간 간격 조건 완성
-                curr_estimated_angular_velocity = xxxxxx # TODO: 각속도 계산 식 완성
+            if delta_time >= counting_time_interval: # TODO: 카운팅 시간 간격 조건 완성
+                curr_estimated_angular_velocity = 2*np.pi*tmp_pulse_count/(pulses_per_revolution*delta_time) # TODO: 각속도 계산 식 완성
                 tmp_pulse_count = 0
-                prev_time = xxxxxx # TODO: 이전 시간 업데이트
+                prev_time = time[idx] # TODO: 이전 시간 업데이트
             
             estimated_angular_velocity[idx] = curr_estimated_angular_velocity
             prev_pulse = pulses[idx]
@@ -347,15 +349,15 @@ class MotionSensorProcessor:
                 continue
             
             # 펄스 상승 엣지 감지 (0 -> 1)
-            if xxxxxx == 0 and xxxxxx > 0: # TODO: 펄스 상승 엣지 감지 조건 완성
+            if prev_pulse == 0 and pulses[idx] > 0: # TODO: 펄스 상승 엣지 감지 조건 완성
                 delta_time = time[idx] - prev_time
                 
                 # 최소 시간 제한 (너무 짧은 시간 방지)
                 if delta_time < 0.001:
                     delta_time = 0.001
                 
-                curr_estimated_angular_velocity = xxxxxx # TODO: 각속도 계산 식 완성
-                prev_time = xxxxxx # TODO: 이전 시간 업데이트
+                curr_estimated_angular_velocity = 2*np.pi/(pulses_per_revolution*delta_time) # TODO: 각속도 계산 식 완성
+                prev_time = time[idx] # TODO: 이전 시간 업데이트
             
             estimated_angular_velocity[idx] = curr_estimated_angular_velocity
             prev_pulse = pulses[idx]

@@ -312,7 +312,7 @@ class SensorDataLoader:
                 wheel_speed_cols = ['wheel_speed_fl', 'wheel_speed_fr', 'wheel_speed_rl', 'wheel_speed_rr']
                 if all(col in vehicle_motion_sensor_df.columns for col in wheel_speed_cols):
                     # 평균 속도 계산
-                    average_speed = xxxxxx # TODO: 평균 속도 계산 - 4개 바퀴의 평균
+                    average_speed = (vehicle_motion_sensor_df['wheel_speed_fl'] + vehicle_motion_sensor_df['wheel_speed_fr'] + vehicle_motion_sensor_df['wheel_speed_rl'] + vehicle_motion_sensor_df['wheel_speed_rr'])/4 # TODO: 평균 속도 계산 - 4개 바퀴의 평균
                     wheel_speed_data = pd.DataFrame({
                         'timestamp': vehicle_motion_sensor_df['timestamp'],
                         'wheel_speed_fl': vehicle_motion_sensor_df['wheel_speed_fl'],

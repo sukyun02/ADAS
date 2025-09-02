@@ -267,19 +267,19 @@ class CameraProcessor:
         
         if noise_type == 'gaussian':
             noise = np.random.normal(0, intensity, image.shape)
-            noisy_image += xxxxxx # TODO: noise를 이미지에 추가
+            noisy_image += noise # TODO: noise를 이미지에 추가
             
         elif noise_type == 'salt_pepper':
             # Salt and Pepper 노이즈
             prob = intensity / 100.0
             random_matrix = np.random.random(image.shape[:2])
             
-            noisy_image[random_matrix < xxxxxx/2] = 0  # Pepper - TODO: 인자로 준 파라미터 값 적용
-            noisy_image[random_matrix > 1 - xxxxxx/2] = 255  # Salt - TODO: 인자로 준 파라미터 값 적용
+            noisy_image[random_matrix < prob/2] = 0  # Pepper - TODO: 인자로 준 파라미터 값 적용
+            noisy_image[random_matrix > 1 - prob/2] = 255  # Salt - TODO: 인자로 준 파라미터 값 적용
                 
         elif noise_type == 'uniform':
             noise = np.random.uniform(-intensity, intensity, image.shape)
-            noisy_image += xxxxxx # TODO: noise를 이미지에 추가
+            noisy_image += noise # TODO: noise를 이미지에 추가
         
         return np.clip(noisy_image, a_min=0, a_max=255).astype(np.uint8)
     
@@ -323,7 +323,7 @@ class CameraProcessor:
     
     def blur_image(self, image: np.ndarray, kernel_size: int = 15) -> np.ndarray:
         """이미지를 블러 처리합니다."""
-        return cv2.GaussianBlur(image, (xxxxxx, xxxxxx), 0) # TODO: 가우시안 블러 함수 인자 작성 (커널 사이즈)
+        return cv2.GaussianBlur(image, (kernel_size, kernel_size), 0) # TODO: 가우시안 블러 함수 인자 작성 (커널 사이즈)
     
     def sharpen_image(self, image: np.ndarray) -> np.ndarray:
         """이미지를 샤픈 처리합니다."""
@@ -334,12 +334,12 @@ class CameraProcessor:
     
     def dilate_image(self, image: np.ndarray, kernel_size: int = 5, iterations: int = 1) -> np.ndarray:
         """이미지를 팽창시킵니다."""
-        kernel = np.ones((xxxxxx, xxxxxx), np.uint8) # TODO: 팽창 함수 인자 작성 (커널 사이즈)
+        kernel = np.ones((kernel_size, kernel_size), np.uint8) # TODO: 팽창 함수 인자 작성 (커널 사이즈)
         return cv2.dilate(image, kernel, iterations=iterations)
     
     def erode_image(self, image: np.ndarray, kernel_size: int = 5, iterations: int = 1) -> np.ndarray:
         """이미지를 침식시킵니다."""
-        kernel = np.ones((xxxxxx, xxxxxx), np.uint8) # TODO: 침식 함수 인자 작성 (커널 사이즈)
+        kernel = np.ones((kernel_size, kernel_size), np.uint8) # TODO: 침식 함수 인자 작성 (커널 사이즈)
         return cv2.erode(image, kernel, iterations=iterations)
     
     # ==================== 고급 이미지 처리 함수들 ====================
@@ -361,15 +361,15 @@ class CameraProcessor:
             image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         
         if method == 'simple':
-            _, binary = cv2.threshold(image, xxxxxx, 255, cv2.THRESH_BINARY) # TODO: 이진화 함수 인자 작성 (임계값)
+            _, binary = cv2.threshold(image, threshold, 255, cv2.THRESH_BINARY) # TODO: 이진화 함수 인자 작성 (임계값)
         elif method == 'adaptive_mean':
             block_size = 11
-            binary = cv2.adaptiveThreshold(image, 255, xxxxxx, 
-                                         cv2.THRESH_BINARY, xxxxxx, 2) # TODO: cv2.ADAPTIVE_THRESH_MEAN_C 사용하여 이진화
+            binary = cv2.adaptiveThreshold(image, 255, cv2.ADAPTIVE_THRESH_MEAN_C, 
+                                         cv2.THRESH_BINARY, block_size, 2) # TODO: cv2.ADAPTIVE_THRESH_MEAN_C 사용하여 이진화
         elif method == 'adaptive_gaussian':
             block_size = 11
-            binary = cv2.adaptiveThreshold(image, 255, xxxxxx, 
-                                         cv2.THRESH_BINARY, xxxxxx, 2) # TODO: cv2.ADAPTIVE_THRESH_GAUSSIAN_C 사용하여 이진화
+            binary = cv2.adaptiveThreshold(image, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
+                                         cv2.THRESH_BINARY, block_size, 2) # TODO: cv2.ADAPTIVE_THRESH_GAUSSIAN_C 사용하여 이진화
         elif method == 'otsu':
             _, binary = cv2.threshold(image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
         else:
@@ -390,18 +390,18 @@ class CameraProcessor:
         Returns:
             np.ndarray: 처리된 이미지
         """
-        kernel = cv2.getStructuringElement(xxxxxx, (xxxxxx, xxxxxx)) # TODO: 커널을 어떠한 구조로 만들지 결정 (cv2.MORPH_RECT / cv2.MORPH_ELLIPSE / cv2.MORPH_CROSS 사용)
+        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (kernel_size, kernel_size)) # TODO: 커널을 어떠한 구조로 만들지 결정 (cv2.MORPH_RECT / cv2.MORPH_ELLIPSE / cv2.MORPH_CROSS 사용)
         
         if operation == 'opening':
-            return cv2.morphologyEx(image, xxxxxx, xxxxxx) # TODO: cv2.MORPH_OPEN 사용 - 침식 후 팽창
+            return cv2.morphologyEx(image, cv2.MORPH_OPEN, kernel) # TODO: cv2.MORPH_OPEN 사용 - 침식 후 팽창
         elif operation == 'closing':
-            return cv2.morphologyEx(image, xxxxxx, xxxxxx) # TODO: cv2.MORPH_CLOSE 사용 - 팽창 후 침식
+            return cv2.morphologyEx(image, cv2.MORPH_CLOSE, kernel) # TODO: cv2.MORPH_CLOSE 사용 - 팽창 후 침식
         elif operation == 'gradient':
-            return cv2.morphologyEx(image, xxxxxx, xxxxxx) # TODO: cv2.MORPH_GRADIENT 사용 - 팽창 이미지와 침식 이미지의 차이
+            return cv2.morphologyEx(image, cv2.MORPH_GRADIENT, kernel) # TODO: cv2.MORPH_GRADIENT 사용 - 팽창 이미지와 침식 이미지의 차이
         elif operation == 'tophat':
-            return cv2.morphologyEx(image, xxxxxx, xxxxxx) # TODO: cv2.MORPH_TOPHAT 사용 - 원본 이미지와 침식 이미지의 차이
+            return cv2.morphologyEx(image, cv2.MORPH_TOPHAT, kernel) # TODO: cv2.MORPH_TOPHAT 사용 - 원본 이미지와 침식 이미지의 차이
         elif operation == 'blackhat':
-            return cv2.morphologyEx(image, xxxxxx, xxxxxx) # TODO: cv2.MORPH_BLACKHAT 사용 - 팽창 이미지와 원본 이미지의 차이
+            return cv2.morphologyEx(image, cv2.MORPH_BLACKHAT, kernel) # TODO: cv2.MORPH_BLACKHAT 사용 - 팽창 이미지와 원본 이미지의 차이
         else:
             return image
     
@@ -421,20 +421,20 @@ class CameraProcessor:
             gray = image
         
         # Sobel 필터 적용
-        sobel_x = cv2.Sobel(gray, cv2.CV_64F, xxxxxx, xxxxxx, ksize=3) # TODO: 소벨 필터 적용 (x방향) - 소벨 필터 인자 작성 (https://deep-learning-study.tistory.com/205 참고)
-        sobel_y = cv2.Sobel(gray, cv2.CV_64F, xxxxxx, xxxxxx, ksize=3) # TODO: 소벨 필터 적용 (y방향) - 소벨 필터 인자 작성
+        sobel_x = cv2.Sobel(gray, cv2.CV_64F, 1, 0, ksize=3) # TODO: 소벨 필터 적용 (x방향) - 소벨 필터 인자 작성 (https://deep-lear  ning-study.tistory.com/205 참고)
+        sobel_y = cv2.Sobel(gray, cv2.CV_64F, 0, 1, ksize=3) # TODO: 소벨 필터 적용 (y방향) - 소벨 필터 인자 작성
         
         # 절댓값으로 변환
-        sobel_x = np.abs(xxxxxx) # TODO: 절댓값 함수 적용
-        sobel_y = np.abs(xxxxxx) # TODO: 절댓값 함수 적용
+        sobel_x = np.abs(sobel_x) # TODO: 절댓값 함수 적용
+        sobel_y = np.abs(sobel_y) # TODO: 절댓값 함수 적용
         
         # 합성 엣지
-        sobel_combined = xxxxxx # TODO: 합성 엣지 계산: 루트(x^2 + y^2)
+        sobel_combined = np.sqrt(np.pow(sobel_x, 2) + np.pow(sobel_y, 2)) # TODO: 합성 엣지 계산: 루트(x^2 + y^2)
         
         # 0-255 범위로 정규화
-        sobel_x = np.clip(xxxxxx, a_min=0, a_max=255).astype(np.uint8) # TODO: 0-255 범위로 정규화
-        sobel_y = np.clip(xxxxxx, a_min=0, a_max=255).astype(np.uint8) # TODO: 0-255 범위로 정규화
-        sobel_combined = np.clip(xxxxxx, a_min=0, a_max=255).astype(np.uint8) # TODO: 0-255 범위로 정규화
+        sobel_x = np.clip(sobel_x, a_min=0, a_max=255).astype(np.uint8) # TODO: 0-255 범위로 정규화
+        sobel_y = np.clip(sobel_y, a_min=0, a_max=255).astype(np.uint8) # TODO: 0-255 범위로 정규화
+        sobel_combined = np.clip(sobel_combined, a_min=0, a_max=255).astype(np.uint8) # TODO: 0-255 범위로 정규화
         
         return sobel_x, sobel_y, sobel_combined
     
@@ -456,7 +456,7 @@ class CameraProcessor:
         else:
             gray = image
         
-        return cv2.Canny(gray, xxxxxx, xxxxxx) # TODO: Canny 함수 인자 작성 (낮은 임계값, 높은 임계값)
+        return cv2.Canny(gray, low_threshold, high_threshold) # TODO: Canny 함수 인자 작성 (낮은 임계값, 높은 임계값)
     
     def detect_contours(self, image: np.ndarray) -> Tuple[List, np.ndarray]:
         """
@@ -468,16 +468,16 @@ class CameraProcessor:
         Returns:
             Tuple[List, np.ndarray]: (윤곽선 리스트, 윤곽선이 그려진 이미지)
         """
-        contours, _ = cv2.findContours(image, xxxxxx, xxxxxx) # TODO: 윤곽선 검출 함수 인자 작성 (외곽선 검출 모드 - cv2.RETR_EXTERNAL / cv2.RETR_CCOMP, 근사화 방법 - cv2.CHAIN_APPROX_SIMPLE)
+        contours, _ = cv2.findContours(image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE) # TODO: 윤곽선 검출 함수 인자 작성 (외곽선 검출 모드 - cv2.RETR_EXTERNAL / cv2.RETR_CCOMP, 근사화 방법 - cv2.CHAIN_APPROX_SIMPLE)
         
         # 원본 이미지가 그레이스케일이면 3채널로 변환
         if len(image.shape) == 2:
-            contour_image = cv2.cvtColor(image, xxxxxx) # TODO: 그레이스케일 이미지를 3채널로 변환
+            contour_image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR) # TODO: 그레이스케일 이미지를 3채널로 변환
         else:
             contour_image = image.copy()
         
         # 윤곽선 그리기
-        cv2.drawContours(contour_image, xxxxxx, -1, (0, 255, 0), 2) # TODO: 윤곽선 그리기 함수 인자 작성 (윤곽선 이미지, 윤곽선 리스트, 윤곽선 인덱스, 색상, 두께)
+        cv2.drawContours(contour_image, contours, -1, (0, 255, 0), 2) # TODO: 윤곽선 그리기 함수 인자 작성 (윤곽선 이미지, 윤곽선 리스트, 윤곽선 인덱스, 색상, 두께)
         
         return contours, contour_image
     
@@ -500,17 +500,17 @@ class CameraProcessor:
 
         # 1단계: 그레이스케일 변환
         if len(image.shape) == 3:
-            gray = cv2.cvtColor(image, xxxxxx) # TODO: 컬러 이미지를 그레이스케일로 변환
+            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY) # TODO: 컬러 이미지를 그레이스케일로 변환
         else:
             gray = image
         results['gray'] = gray
         
         # 2단계: 가우시안 블러
-        blurred = xxxxxx # TODO: 가우시안 블러 함수 사용 - cv2.GaussianBlur
+        blurred = cv2.GaussianBlur(gray, (5, 5), 0) # TODO: 가우시안 블러 함수 사용 - cv2.GaussianBlur
         results['blurred'] = blurred
         
         # 3단계: Canny 엣지 검출
-        edges = xxxxxx(xxxxxx, 50, 150) # TODO: Canny 함수 사용 - cv2.Canny
+        edges = cv2.Canny(blurred, 50, 150) # TODO: Canny 함수 사용 - cv2.Canny
         results['edges'] = edges
 
         # 4단계: 관심 영역 설정 (사다리꼴 모양)
@@ -519,22 +519,22 @@ class CameraProcessor:
         
         # 사다리꼴 꼭짓점 정의 - TODO
         trapezoid = np.array([
-            [int(width * xxxxxx), int(height * xxxxxx)], # 좌하
-            [int(width * xxxxxx), int(height * xxxxxx)], # 좌상
-            [int(width * xxxxxx), int(height * xxxxxx)], # 우상
-            [int(width * xxxxxx), int(height * xxxxxx)]  # 우하
+            [int(width * 0.4), int(height * 0.9)], # 좌하
+            [int(width * 0.4), int(height * 0.6)], # 좌상
+            [int(width * 0.6), int(height * 0.6)], # 우상
+            [int(width * 0.9), int(height * 0.9)]  # 우하
         ], dtype=np.int32)
         
         cv2.fillPoly(mask, [trapezoid], 255)
-        masked_edges = xxxxxx # TODO: cv2.bitwise_and 사용하여 edges와 mask를 비트 연산 (https://engineer-mole.tistory.com/237 참고)
+        masked_edges = cv2.bitwise_and(edges, mask) # TODO: cv2.bitwise_and 사용하여 edges와 mask를 비트 연산 (https://engineer-mole.tistory.com/237 참고)
         results['masked'] = masked_edges
         
         # 5단계: 허프 변환으로 직선 검출
         hough_threshold = 50
         hough_min_line_length = 100
         hough_max_line_gap = 50
-        lines = cv2.HoughLinesP(masked_edges, 1, np.pi/180, xxxxxx, 
-                               xxxxxx, xxxxxx) # TODO: 허프 변환 함수 인자 작성
+        lines = cv2.HoughLinesP(masked_edges, 1, np.pi/180, hough_threshold, 
+                               hough_min_line_length, hough_max_line_gap) # TODO: 허프 변환 함수 인자 작성
         
         # 6단계: 검출된 직선을 원본 이미지에 그리기
         line_image = np.zeros_like(image)
@@ -589,7 +589,7 @@ class CameraProcessor:
             print("⚠ 카메라 파라미터가 설정되지 않았습니다.")
             return image
         
-        return xxxxxx # TODO: 왜곡 보정 함수 사용 - cv2.undistort, self.K, self.D 활용
+        return cv2.undistort(image, self.K, self.D) # TODO: 왜곡 보정 함수 사용 - cv2.undistort, self.K, self.D 활용
     
     def world_to_image(self, world_points: np.ndarray) -> np.ndarray:
         """
@@ -685,8 +685,8 @@ class CameraProcessor:
             Tuple[np.ndarray, Tuple[int, int]]: (변환 행렬, BEV 이미지 크기)
         """
         # BEV 이미지 크기 계산
-        bev_img_width = int(xxxxxx) # TODO: BEV 이미지 폭 계산
-        bev_img_height = int(xxxxxx) # TODO: BEV 이미지 높이 계산
+        bev_img_width = int(bev_width/bev_resolution) # TODO: BEV 이미지 폭 계산
+        bev_img_height = int(bev_height/bev_resolution) # TODO: BEV 이미지 높이 계산
         bev_size = (bev_img_height, bev_img_width)
         
         # 월드 좌표계의 4개 점 정의 (지면 위의 사각형)
@@ -703,14 +703,14 @@ class CameraProcessor:
         
         # BEV 이미지의 대응점
         bev_points = np.array([
-            [xxxxxx, xxxxxx],      # 좌하
-            [xxxxxx, xxxxxx],      # 좌상
-            [xxxxxx, xxxxxx],      # 우상
-            [xxxxxx, xxxxxx]       # 우하
+            [0, bev_img_height],      # 좌하
+            [0, 0],      # 좌상
+            [bev_img_width, 0],      # 우상
+            [bev_img_width, bev_img_height]       # 우하
         ], dtype=np.float32)
         
         # 변환 행렬 계산
-        transform_matrix = xxxxxx # TODO: 변환 행렬 계산 - cv2.getPerspectiveTransform, image_points, bev_points 활용
+        transform_matrix = cv2.getPerspectiveTransform(image_points, bev_points) # TODO: 변환 행렬 계산 - cv2.getPerspectiveTransform, image_points, bev_points 활용
         
         print(f"BEV 변환 행렬이 생성되었습니다.")
         print(f"BEV 이미지 크기: {bev_size}")
@@ -732,7 +732,7 @@ class CameraProcessor:
         Returns:
             np.ndarray: BEV 변환된 이미지
         """
-        bev_image = xxxxxx # TODO: BEV 변환 함수 사용 - cv2.warpPerspective, transform_matrix, bev_size 활용
+        bev_image = cv2.warpPerspective(image, transform_matrix, (bev_size[1], bev_size[0])) # TODO: BEV 변환 함수 사용 - cv2.warpPerspective, transform_matrix, bev_size 활용
         return bev_image
     
     def detect_lanes_bev(self, bev_image: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
@@ -747,7 +747,7 @@ class CameraProcessor:
         """
         # 그레이스케일 변환
         if len(bev_image.shape) == 3:
-            gray = cv2.cvtColor(bev_image, xxxxxx) # TODO: 컬러 이미지를 그레이스케일로 변환
+            gray = cv2.cvtColor(bev_image, cv2.COLOR_BGR2GRAY) # TODO: 컬러 이미지를 그레이스케일로 변환
         else:
             gray = bev_image
         
@@ -756,13 +756,13 @@ class CameraProcessor:
         
         # 모폴로지 연산으로 노이즈 제거
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
-        cleaned = xxxxxx # TODO: 모폴로지 연산 함수 사용 - cv2.morphologyEx, cv2.MORPH_OPEN 활용
+        cleaned = cv2.morphologyEx(binary, cv2.MORPH_OPEN, kernel) # TODO: 모폴로지 연산 함수 사용 - cv2.morphologyEx, cv2.MORPH_OPEN 활용
         
         # 윤곽선 검출
-        contours, _ = xxxxxx # TODO: 윤곽선 검출 함수 사용 - cv2.findContours, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE 활용
+        contours, _ = cv2.findContours(cleaned, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE) # TODO: 윤곽선 검출 함수 사용 - cv2.findContours, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE 활용
         
         # 결과 이미지 생성
-        result = cv2.cvtColor(gray, xxxxxx) # TODO: 그레이스케일 이미지를 3채널로 변환
+        result = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR) # TODO: 그레이스케일 이미지를 3채널로 변환
         
         # 차선으로 판단되는 윤곽선 필터링 및 그리기
         for contour in contours:
