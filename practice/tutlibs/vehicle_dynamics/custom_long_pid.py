@@ -51,42 +51,42 @@ class PIDController:
         """PID 제어 업데이트"""
         
         # 오차 계산
-        error = xxxxxx # TODO: 오차 계산식 작성
+        error = target_velocity - current_velocity # TODO: 오차 계산식 작성
         
         # 초기화 체크
         if not self.is_initialized:
-            self.previous_error = xxxxxx # TODO: 이전 오차 저장
+            self.previous_error = error # TODO: 이전 오차 저장
             self.is_initialized = True
         
         # 비례항 (P)
-        proportional = xxxxxx # TODO: 비례항 계산식 작성
+        proportional = self.kp * error # TODO: 비례항 계산식 작성
         
         # 적분항 (I)
-        self.integral += xxxxxx # TODO: 적분항 계산식 작성
+        self.integral += error * self.dt # TODO: 적분항 계산식 작성
         # 적분 윈드업 방지
-        self.integral = xxxxxx # TODO: 적분 윈드업 방지
-        integral_term = xxxxxx # TODO: 적분항 계산식 작성
+        self.integral = np.clip(self.integral, self.integral_min, self.integral_max) # TODO: 적분 윈드업 방지
+        integral_term = self.ki * self.integral # TODO: 적분항 계산식 작성
         
         # 미분항 (D)
-        derivative = xxxxxx # TODO: 미분항 계산식 작성
-        derivative_term = xxxxxx # TODO: 미분항 계산식 작성
+        derivative = (error - self.previous_error) / self.dt # TODO: 미분항 계산식 작성
+        derivative_term = self.kd * derivative # TODO: 미분항 계산식 작성
         
         # PID 출력
-        output = xxxxxx # TODO: PID 출력 계산식 작성
+        output = proportional + integral_term + derivative_term # TODO: PID 출력 계산식 작성
         
         # 출력 제한
-        output = xxxxxx # TODO: 출력 제한 계산식 작성
+        output = np.clip(output, self.min_output, self.max_output) # TODO: 출력 제한 계산식 작성
         
         # 다음 계산을 위해 현재 오차 저장
         self.previous_error = error
         
         # 제어 정보
         control_info = {
-            'error': xxxxxx, # TODO: 오차
-            'proportional': xxxxxx, # TODO: 비례항
-            'integral': xxxxxx, # TODO: 적분항
-            'derivative': xxxxxx, # TODO: 미분항
-            'integral_sum': xxxxxx, # TODO: 적분항 합
+            'error': error, # TODO: 오차
+            'proportional': proportional, # TODO: 비례항
+            'integral': integral_term, # TODO: 적분항
+            'derivative': derivative_term, # TODO: 미분항
+            'integral_sum': , # TODO: 적분항 합
             'output': output
         }
         
@@ -117,9 +117,9 @@ class AdaptiveSpeedController:
         idx2 = current_idx
         idx3 = min(len(path_x) - 1, current_idx + lookahead)
         
-        x1, y1 = xxxxxx # TODO: 첫 번째 점 좌표
-        x2, y2 = xxxxxx # TODO: 두 번째 점 좌표
-        x3, y3 = xxxxxx # TODO: 세 번째 점 좌표
+        x1, y1 = path_x[idx1], path_y[idx1] # TODO: 첫 번째 점 좌표
+        x2, y2 = path_x[idx2], path_y[idx2] # TODO: 두 번째 점 좌표
+        x3, y3 = path_x[idx3], path_y[idx3] # TODO: 세 번째 점 좌표
         
         # 곡률 계산 공식
         # K = 2 * |det| / (a * b * c)

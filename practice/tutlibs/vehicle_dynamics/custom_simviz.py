@@ -80,7 +80,7 @@ class LongitudinalDynamics:
     def motor_dynamics(self, motor_torque, brake_torque, velocity):
         """모터 동역학 방정식"""
         # 등가 관성
-        J_eq = self.xxxxxx() # TODO: 등가 관성 계산식 작성
+        J_eq = self.calculate_equivalent_inertia() # TODO: 등가 관성 계산식 작성
         
         # 저항력들
         F_roll, F_aero, F_grav = self.calculate_resistances(velocity) # TODO: 저항력 계산식 작성
@@ -101,12 +101,12 @@ class LongitudinalDynamics:
         """페달 입력을 토크로 변환 (양수: 가속, 음수: 브레이크)"""
         if pedal_input >= 0:
             # 가속 페달
-            motor_torque = pedal_input * xxxxxx # TODO: 가속 페달 토크 계산식 작성
+            motor_torque = pedal_input * self.accel_const # TODO: 가속 페달 토크 계산식 작성
             brake_torque = 0.0
         else:
             # 브레이크 페달
             motor_torque = 0.0
-            brake_torque = -pedal_input * xxxxxx # TODO: 브레이크 페달 토크 계산식 작성
+            brake_torque = -pedal_input * self.brake_const # TODO: 브레이크 페달 토크 계산식 작성
             
         return motor_torque, brake_torque
 
@@ -136,19 +136,19 @@ class LateralDynamics:
     def kinematic_model(self, velocity, steering_angle, beta=0.0):
         """Kinematic 모델 (v < 5 m/s)"""
         # 조향각 제한
-        delta = xxxxxx # TODO: np.clip 사용하여 조향각 제한 with max_steer
+        delta = np.clip(steering_angle, -self.max_steer, self.max_steer) # TODO: np.clip 사용하여 조향각 제한 with max_steer
         
         # 슬립각 계산 (기하학적 관계)
         if abs(delta) < 1e-6:
             beta_new = 0.0
             yaw_rate = 0.0
         else:
-            beta_new = xxxxxx # TODO: 슬립각 계산식 작성 - delta_r은 0으로 가정
-            beta_new = xxxxxx # TODO: np.clip 사용하여 슬립각 제한
+            beta_new = np.arctan((self.Lr * np.tan(delta)) / self.L) # TODO: 슬립각 계산식 작성 - delta_r은 0으로 가정
+            beta_new = np.clip(beta_new, -self.beta_max, self.beta_max) # TODO: np.clip 사용하여 슬립각 제한
             
             # 요 각속도 계산
-            yaw_rate = xxxxxx # TODO: 요 각속도 계산식 작성 - delta_r은 0으로 가정
-            yaw_rate = xxxxxx # TODO: np.clip 사용하여 요 각속도 제한
+            yaw_rate = (velocity * np.cos(beta_new) / self.L) * np.tan(delta) # TODO: 요 각속도 계산식 작성 - delta_r은 0으로 가정
+            yaw_rate = np.clip(yaw_rate, -self.yaw_rate_max, self.yaw_rate_max) # TODO: np.clip 사용하여 요 각속도 제한
         
         # 상태 미분값
         beta_dot = (beta_new - beta) * 50.0  # 부드러운 수렴을 위한 1차 시스템
@@ -159,30 +159,30 @@ class LateralDynamics:
     def dynamic_model(self, velocity, steering_angle, beta, yaw_rate):
         """Dynamic 모델 (v ≥ 5 m/s)"""
         # 조향각 제한
-        delta = xxxxxx # TODO: np.clip 사용하여 조향각 제한 with max_steer
+        delta = np.clip(steering_angle, -self.max_steer, self.max_steer) # TODO: np.clip 사용하여 조향각 제한 with max_steer
         
         # 속도 하한 (분모 보호)
         v = max(velocity, 0.1)
         
         # 슬립각 계산
-        alpha_f = xxxxxx # TODO: 전륜 슬립각 계산식 작성
-        alpha_r = xxxxxx # TODO: 후륜 슬립각 계산식 작성
+        alpha_f = delta - beta - (self.Lf * yaw_rate) / v # TODO: 전륜 슬립각 계산식 작성
+        alpha_r = -beta + (self.Lr * yaw_rate) / v # TODO: 후륜 슬립각 계산식 작성
         
         # 슬립각 제한
-        alpha_f = xxxxxx # TODO: np.clip 사용하여 전륜 슬립각 제한 with max_alpha
-        alpha_r = xxxxxx # TODO: np.clip 사용하여 후륜 슬립각 제한 with max_alpha
+        alpha_f = np.clip(alpha_f, -self.max_alpha, self.max_alpha) # TODO: np.clip 사용하여 전륜 슬립각 제한 with max_alpha
+        alpha_r = np.clip(alpha_r, -self.max_alpha, self.max_alpha) # TODO: np.clip 사용하여 후륜 슬립각 제한 with max_alpha
         
         # 측력 계산
-        Fyf = xxxxxx # TODO: 전륜 측력 계산식 작성 - (self.Cf == 2*c_af)
-        Fyr = xxxxxx # TODO: 후륜 측력 계산식 작성 - (self.Cr == 2*c_ar)
+        Fyf = self.Cf * alpha_f # TODO: 전륜 측력 계산식 작성 - (self.Cf == 2*c_af)
+        Fyr = self.Cr * alpha_r # TODO: 후륜 측력 계산식 작성 - (self.Cr == 2*c_ar)
         
         # 상태 미분값 계산
-        beta_dot = xxxxxx # TODO: 슬립각 미분값 계산식 작성
-        yaw_rate_dot = xxxxxx # TODO: 요 각속도 미분값 계산식 작성
+        beta_dot = (Fyf + Fyr) / (self.m * v) - yaw_rate # TODO: 슬립각 미분값 계산식 작성
+        yaw_rate_dot = (self.Lf * Fyf - self.Lr * Fyr) / self.Iz # TODO: 요 각속도 미분값 계산식 작성
         
         # 제한
-        beta_dot = xxxxxx # TODO: np.clip 사용하여 슬립각 미분값 제한 (-10 ~ 10)
-        yaw_rate_dot = xxxxxx # TODO: np.clip 사용하여 요 각속도 미분값 제한 (-10 ~ 10)
+        beta_dot = np.clip() # TODO: np.clip 사용하여 슬립각 미분값 제한 (-10 ~ 10)
+        yaw_rate_dot = np.clip() # TODO: np.clip 사용하여 요 각속도 미분값 제한 (-10 ~ 10)
         
         return beta_dot, yaw_rate, yaw_rate_dot
     
@@ -219,8 +219,8 @@ class LateralDynamics:
     
     def vehicle_kinematics(self, velocity, yaw_angle, beta):
         """차량 위치 운동학"""
-        x_dot = xxxxxx # TODO: 종위치 미분값 계산식 작성
-        y_dot = xxxxxx # TODO: 횡위치 미분값 계산식 작성
+        x_dot = velocity * np.cos(yaw_angle + beta) # TODO: 종위치 미분값 계산식 작성
+        y_dot = velocity * np.sin(yaw_angle + beta) # TODO: 횡위치 미분값 계산식 작성
         return x_dot, y_dot
 
 class VehicleDynamicsSimulator:
@@ -234,8 +234,8 @@ class VehicleDynamicsSimulator:
                      steering_input: float, dt: float) -> Tuple[VehicleState, Dict]:
         """한 스텝 시뮬레이션"""
         # 종방향 동역학
-        motor_torque, brake_torque = self.long_model.xxxxxx(pedal_input) # TODO: 페달 입력을 토크로 변환 함수 작성
-        acceleration, _, F_roll, F_aero, F_grav = self.long_model.xxxxxx(
+        motor_torque, brake_torque = self.long_model.pedal_to_torque(pedal_input) # TODO: 페달 입력을 토크로 변환 함수 작성
+        acceleration, _, F_roll, F_aero, F_grav = self.long_model.motor_dynamics(
             motor_torque, brake_torque, state.velocity) # TODO: 모터 동역학 방정식 함수 작성
         
         # 횡방향 동역학 (속도에 따른 모델 자동 선택)
@@ -243,21 +243,21 @@ class VehicleDynamicsSimulator:
             state.velocity, steering_input, state.beta, state.yaw_rate) # TODO: 횡방향 동역학 함수 작성
         
         # 차량 위치 운동학
-        x_dot, y_dot = self.lat_model.xxxxxx(
+        x_dot, y_dot = self.lat_model.vehicle_kinematics(
             state.velocity, state.yaw, state.beta) # TODO: 차량 위치 운동학 함수 작성
         
         # 상태 업데이트 (Euler integration)
         new_state = VehicleState(
-            x = xxxxxx, # TODO: 종위치 계산식 작성
-            y = xxxxxx, # TODO: 횡위치 계산식 작성
-            yaw = xxxxxx, # TODO: 요 각도 계산식 작성
-            velocity = max(0.0, xxxxxx), # TODO: 속도 계산식 작성
-            beta = xxxxxx, # TODO: 슬립각 계산식 작성
-            yaw_rate = xxxxxx # TODO: 요 각속도 계산식 작성
+            x = state.x + x_dot * dt, # TODO: 종위치 계산식 작성
+            y = state.y + y_dot * dt, # TODO: 횡위치 계산식 작성
+            yaw = state.yaw + yaw_rate_new * dt, # TODO: 요 각도 계산식 작성
+            velocity = max(0.0, state.velocity + acceleration * dt), # TODO: 속도 계산식 작성
+            beta = state.beta + beta_dot * dt, # TODO: 슬립각 계산식 작성
+            yaw_rate = yaw_rate_new + yaw_rate_dot * dt # TODO: 요 각속도 계산식 작성
         )
         
         # 제한 적용
-        new_state.beta = xxxxxx # TODO: np.clip 사용하여 슬립각 제한
+        new_state.beta = np.clip(new_state.beta) # TODO: np.clip 사용하여 슬립각 제한
         new_state.yaw_rate = xxxxxx # TODO: np.clip 사용하여 요 각속도 제한
         
         # 시뮬레이션 정보

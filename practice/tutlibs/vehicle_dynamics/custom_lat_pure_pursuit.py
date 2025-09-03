@@ -48,21 +48,21 @@ class PurePursuitController:
         y_local = -sin_yaw * dx + cos_yaw * dy # TODO: 차량 좌표계에서의 경로점 위치 계산식 작성
         
         # 거리 계산
-        distances = xxxxxx # TODO: 거리 계산식 작성
+        distances = np.sqrt(x_local**2 + y_local**2) # TODO: 거리 계산식 작성
         
         # 전방 점들 중에서 룩어헤드 거리와 가장 가까운 점 찾기
-        forward_mask = xxxxxx # TODO: 전방 점들 중에서 룩어헤드 거리와 가장 가까운 점 찾기
+        forward_mask = x_local >= 0.0 # TODO: 전방 점들 중에서 룩어헤드 거리와 가장 가까운 점 찾기
         
         if np.any(forward_mask):
-            forward_distances = xxxxxx # TODO: 전방 점들 중에서 룩어헤드 거리와 가장 가까운 점 찾기
+            forward_distances = distances[forward_mask] # TODO: 전방 점들 중에서 룩어헤드 거리와 가장 가까운 점 찾기
             forward_indices = np.where(forward_mask)[0]
             
             # 룩어헤드 거리와 가장 가까운 점 선택
-            distance_diff = xxxxxx # TODO: 룩어헤드 거리와 가장 가까운 점 찾기
+            distance_diff = np.abs(forward_distances - lookahead_distance) # TODO: 룩어헤드 거리와 가장 가까운 점 찾기
             best_idx = forward_indices[np.argmin(distance_diff)]
         else:
             # 전방 점이 없으면 가장 가까운 점 선택
-            best_idx = xxxxxx # TODO: 가장 가까운 점 찾기 - np.argmin 사용
+            best_idx = np.argmin(distances) # TODO: 가장 가까운 점 찾기 - np.argmin 사용
         
         return path_x[best_idx], path_y[best_idx], best_idx
     
@@ -76,7 +76,7 @@ class PurePursuitController:
         
         # 룩어헤드 포인트 찾기
         target_x, target_y, target_idx = self.find_lookahead_point(
-            xxxxxx, xxxxxx, xxxxxx, xxxxxx, xxxxxx, xxxxxx) # TODO: 룩어헤드 포인트 찾기
+            vehicle_x, vehicle_y, vehicle_yaw, vehicle_velocity, path_x, path_y) # TODO: 룩어헤드 포인트 찾기
         
         # 차량 좌표계에서 타겟 위치
         cos_yaw = np.cos(vehicle_yaw)
@@ -91,18 +91,19 @@ class PurePursuitController:
         
         # Pure Pursuit 조향각 계산
         # δ = arctan(2 * L * y_local / lookahead_distance^2)
-        lookahead_distance_actual = xxxxxx # TODO: 룩어헤드 거리 계산식 작성
+        lookahead_distance_actual = np.sqrt(x_local**2 + y_local**2) # TODO: 룩어헤드 거리 계산식 작성
         lookahead_distance_actual = max(lookahead_distance_actual, 0.1) # TODO: 분모 보호
         
-        steering_angle = xxxxxx # TODO: 조향각 계산식 작성
+        steering_angle = np.arctan2(2.0 * self.wheelbase * y_local,
+                                    lookahead_distance_actual**2) # TODO: 조향각 계산식 작성
         
         # 조향각 제한
-        steering_angle = xxxxxx # TODO: np.clip 사용하여 조향각 제한
+        steering_angle = np.clip(steering_angle, -self.max_steer, self.max_steer) # TODO: np.clip 사용하여 조향각 제한
         
         # 제어 정보
         control_info = {
-            'lookahead_distance': xxxxxx, # TODO: 룩어헤드 거리
-            'lookahead_point': (xxxxxx, xxxxxx), # TODO: 룩어헤드 포인트
+            'lookahead_distance': lookahead_distance, # TODO: 룩어헤드 거리
+            'lookahead_point': (target_x, target_y), # TODO: 룩어헤드 포인트
             'target_index': xxxxxx, # TODO: 룩어헤드 포인트 인덱스
             'lateral_error': xxxxxx, # TODO: 횡방향 오차
             'lookahead_distance_actual': xxxxxx # TODO: 실제 룩어헤드 거리
